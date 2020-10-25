@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<ruleset name="Common">
+
+  <description>PHP_CodeSniffer configuration for common projects</description>
+
+    <!-- Используем правила PSR12-->
+    <rule ref="PSR12">
+        <!-- Убираем оповещение об ошибках-->
+        <!-- ERRORS -->
+        
+        <!-- Убираем ошибку `The first expression of a multi-line control structure must be on the line after the opening
+            parenthesis` Касается только условного оператора if. Другого пока не нашёл. 
+        -->
+        <exclude name="PSR12.ControlStructures.ControlStructureSpacing.FirstExpressionLine"/>
+
+        <!--exclude name="PEAR.Functions.FunctionCallSignature"/-->
+        <!--exclude name="PEAR.Functions.FunctionCallSignature.SpaceAfterCloseBracket"/-->
+        <!--exclude name="WordPress.CSRF.NonceVerification.NoNonceVerification"/-->
+
+        <!-- WARNINGS -->
+    </rule>
+
+    <!-- Двойные кавычки можно использовать только если внутри используются переменные. В остальных случаях 
+        должны использоваться одинарные кавычки -->
+    <rule ref="Squiz.Strings.DoubleQuoteUsage">
+        <exclude name="Squiz.Strings.DoubleQuoteUsage.ContainsVar"/>
+    </rule>
+
+    <!-- Добавляем ошибку для условного оператора, что условия начинаются непосредственно за открывающей скобкой -->
+    <rule ref="PSR2.ControlStructures.ControlStructureSpacing">
+        <property name="SpacingAfterOpenBrace" value=""/>
+    </rule>
+
+    <!-- Длинна линии 180 символов маскимально -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="180"/>
+        </properties>
+    </rule>
+
+</ruleset>

@@ -1,0 +1,28 @@
+{
+  "name": "alaxji/climax",
+  "description": "Description of project climax.",
+  "authors": [
+    {
+      "name": "Alexei Dubrovsky",
+      "email": "alaxji@gmail.com"
+    }
+  ],
+  "config": {
+    "platform": {
+      "php": "5.3.9"
+    }
+  },
+  "require": {
+    "php": ">=5.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "CliMax\\": "src/AlaxJI/CliMax/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "CliMaxTest\\": "tests/"
+    }
+  }
+}
