@@ -35,7 +35,7 @@ abstract class BaseCommand implements ICommand
                 $argLinker = null;
                 break;
             default:
-                $argLinker = "{$argLinker}<arg>";
+                $argLinker = "{$argLinker} <arg>";
                 break;
         }
         $cmd = null;

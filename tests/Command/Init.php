@@ -3,6 +3,8 @@
 namespace CliMaxTest\Command;
 
 use CliMax\BaseCommand;
+use CliMax\Command\ICommand;
+
 /**
  * Description of Init
  *
@@ -10,11 +12,6 @@ use CliMax\BaseCommand;
  */
 class Init extends BaseCommand
 {
-    public function __construct()
-    {
-        ;
-    
-    }
     public function run($arguments, \CliMax\Controller $cliController)
     {
         print 'run Init command ' . PHP_EOL

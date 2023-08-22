@@ -3,6 +3,8 @@
 namespace CliMaxTest\Command;
 
 use CliMax\BaseCommand;
+use CliMaxTest\Environment;
+
 /**
  * Description of Init
  *
@@ -13,11 +15,15 @@ class Config extends BaseCommand
     public function __construct()
     {
         ;
-    
     }
+
     public function run($arguments, \CliMax\Controller $cliController)
     {
-        echo 'run Config command'.PHP_EOL;
+        $appendText = '';
+        if ($cliController->hasEnvironment(Environment::VERBOSE)) {
+            $appendText = ' with verbose ';
+        }
+        echo 'run Config command' . $appendText . PHP_EOL;
 
         return -2;
     }

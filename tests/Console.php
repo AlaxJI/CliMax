@@ -1,9 +1,12 @@
 <?php
+
 namespace CliMaxTest;
 
 use CliMax\Controller;
 use CliMaxTest\Command\Init;
 use CliMaxTest\Command\Config;
+use CliMaxTest\Environment;
+
 /**
  * Description of Controller
  *
@@ -15,8 +18,13 @@ class Console extends Controller
     {
         parent::__construct($opts);
         $this
+            ->addEnvironmentFlagWithExactlyOneArgument(
+                Environment::FILE,
+                array('-f', '--file'),
+                array('description' => 'decaription of file option',)
+            )
             ->addEnvironmentFlagSetsValue(
-                'verbose',
+                Environment::VERBOSE,
                 false,
                 array('-v', '--verbose'),
                 array('description' => 'decaription of verbose option',)
