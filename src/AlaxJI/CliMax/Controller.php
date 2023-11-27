@@ -2,9 +2,9 @@
 
 namespace CliMax;
 
-use CliMax\Command\ICommand;
 use CliMax\Command\ArugumentException;
 use Exception;
+
 /**
  * Description of Controller
  *
@@ -20,9 +20,11 @@ class Controller
 
     protected $commandMap = array();
     protected $usageCommands = array();
+    protected $required = array();
     protected $defaultCommand = null;
     protected $defaultCommandAlwaysRuns = false;
     protected $environment = array();
+    protected $description = '';
     /**
      * @var string The character linking a command flag to its argument. Default null (ie whitespace).
      */
@@ -37,7 +39,10 @@ class Controller
             ), $opts);
     }
 
-    protected function __clone() {}
+    protected function __clone()
+    {
+
+    }
 
     /**
      *
@@ -126,13 +131,24 @@ class Controller
         return $this;
     }
 
-    public function addEnvironmentFlagWithExactlyOneArgument($key, $aliases = null, $opts = array())
+    public function addEnvironmentFlagWithExactlyOneArgument($key, ?array $aliases = null, $opts = [])
     {
         if (is_null($aliases)) {
-            $aliases = '--' . $key;
+            $aliases = ['--' . $key];
         }
-        $opts = array_merge($opts, array('requiresArgument' => true));   // requiresArgument should always win
-        $this->addCommand(new EnvironmentOption($key, $opts), $aliases);
+        $opts = array_merge($opts, [
+            'requiresArgument' => true, // requiresArgument should always win
+            'aliases' => $aliases
+        ]);
+        $environmentOption = new EnvironmentOption($key, $opts);
+        $hash = spl_object_hash($environmentOption);
+        if ($opts[EnvironmentOption::REQUIRED] ?? false) {
+            $this->required[$hash] = [
+                'option' => $environmentOption,
+                'isAvaible' => false,
+            ];
+        }
+        $this->addCommand($environmentOption, $aliases);
 
         return $this;
     }
@@ -140,14 +156,23 @@ class Controller
     public function addEnvironmentFlagSetsValue($key, $flagSetsValue, $aliases = null, $opts = array())
     {
         if (is_null($aliases)) {
-            $aliases = '--' . $key;
+            $aliases = ['--' . $key];
         }
         // these values always win
-        $opts = array_merge($opts, array(
+        $opts = array_merge($opts, [
             'requiresArgument' => false,
-            'noArgumentValue' => $flagSetsValue
-        ));
-        $this->addCommand(new EnvironmentOption($key, $opts), $aliases);
+            'noArgumentValue' => $flagSetsValue,
+            'aliases' => $aliases
+        ]);
+        $environmentOption = new EnvironmentOption($key, $opts);
+        $hash = spl_object_hash($environmentOption);
+        if ($opts[EnvironmentOption::REQUIRED] ?? false) {
+            $this->required[$hash] = [
+                'option' => $environmentOption,
+                'isAvaible' => false,
+            ];
+        }
+        $this->addCommand($environmentOption, $aliases);
 
         return $this;
     }
@@ -184,6 +209,10 @@ class Controller
             if (is_null($token)) {    // reached end
                 if ($cmd) {   // push last command
                     $commands[] = array('command' => $cmd, 'arguments' => $args, 'token' => $cmdToken);
+                    $hash = spl_object_hash($cmd);
+                    if (isset($this->required[$hash])) {
+                        $this->required[$hash]['isAvaible'] = true;
+                    }
                     $cmd = null;
                     $args = array();
                 }
@@ -201,6 +230,10 @@ class Controller
             if ($nextCmd) {
                 if ($cmd) {
                     $commands[] = array('command' => $cmd, 'arguments' => $args, 'token' => $cmdToken);
+                    $hash = spl_object_hash($cmd);
+                    if (isset($this->required[$hash])) {
+                        $this->required[$hash]['isAvaible'] = true;
+                    }
                 } else {     // stash original set of arguments away for use with defaultCommand as needed
                     $defaultCommandArguments = $args;
                 }
@@ -219,6 +252,11 @@ class Controller
         // run commands
         $currentCommand = null;
         try {
+            foreach ($this->required as $hash => $requireItem) {
+                if (!$requireItem['isAvaible']) {
+                    throw new ArugumentException("Missing required option '" . $requireItem['option']->getAlias() . "'");
+                }
+            }
             foreach ($commands as $key => $command) {
                 $currentCommand = $command;
                 //print "Calling " . get_class($command['command']) . "::run(" . join(', ', $command['arguments']) . ")";
@@ -235,7 +273,7 @@ class Controller
                 }
             }
         } catch (ArugumentException $e) {
-            $this->options[self::OPT_SLIENT] || fwrite(STDERR, "Error processing {$currentCommand['token']}: {$e->getMessage()}\n");
+            $this->options[self::OPT_SLIENT] || fwrite(STDERR, "Error processing " . ($currentCommand['token'] ?? '') . ": {$e->getMessage()}\n");
             $result = -2;
         } catch (Exception $e) {
             $this->options[self::OPT_SLIENT] || fwrite(STDERR, get_class($e) . ": {$e->getMessage()}\n{$e->getTraceAsString()}\n");
@@ -250,6 +288,9 @@ class Controller
 
     public function usage()
     {
+        if (!empty($this->description)) {
+            print $this->description . "\n------\n";
+        }
         print "Usage:\n------\n";
         foreach ($this->usageCommands as $usageInfo) {
             print $usageInfo['command']->getUsage($usageInfo['aliases'], $this->argLinker) . "\n";

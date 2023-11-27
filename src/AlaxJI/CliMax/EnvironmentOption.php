@@ -6,26 +6,61 @@ use CliMax\Command\ArugumentException;
 
 class EnvironmentOption extends BaseCommand
 {
+    /**
+     * Обязательный параметр, по-умолчанию <code>FALSE</code>
+     */
+    public const REQUIRED = 'required';
+    /**
+     * Обязательный агрумент параметра, по-умолчанию <code>FALSE</code>
+     */
+    public const REQUIRES_ARGUMENT = 'requiresArgument';
+    /**
+     * Допустимо передавать несколько аргументов, по-умолчанию <code>FALSE</code>
+     */
+    public const ALLOWS_MULTIPLE_ARGUMENTS = 'allowsMultipleArguments';
+    /**
+     * Значения аргументов, которые будут подставлены по-умолчанию, по-умолчанию <code>[]</code>
+     */
+    public const NO_ARGUMENT_VALUE = 'noArgumentValue';
+    /**
+     * Допустимые значения аргументов, по-умолчанию <code>[]</code>
+     */
+    public const ALLOWED_VALUES = 'allowedValues';
+    /**
+     * ..., по-умолчанию <code>[]</code>
+     */
+    public const ALIASES = 'aliases';
+    /**
+     * Описание параметра, по-умолчанию <code><пусто></code>
+     */
+    public const DESCRIPTION = 'description';
+
+    protected $required = false;
     protected $environmentKey;
     protected $requiresArgument;
     protected $allowsMultipleArguments;
     protected $noArgumentValue;
     protected $allowedValues;
+    protected $aliases = [];
     protected $description = null;
 
     public function __construct($environmentKey, $opts = array())
     {
         $this->environmentKey = $environmentKey;
-        $opts = array_merge(array(
+        $opts = array_merge([
+            'required' => false,
             'requiresArgument' => false,
             'allowsMultipleArguments' => false,
-            'noArgumentValue' => null,
-            'allowedValues' => null,
-            ), $opts);
+            'noArgumentValue' => [],
+            'allowedValues' => [],
+            'aliases' => [],
+            ], $opts);
+        $this->required = $opts[static::REQUIRED];
         $this->requiresArgument = $opts['requiresArgument'];
         $this->allowsMultipleArguments = $opts['allowsMultipleArguments'];
         $this->noArgumentValue = $opts['noArgumentValue'];
         $this->allowedValues = $opts['allowedValues'];
+        $this->aliases = $opts['aliases'];
         if (!empty($opts['description'])) {
             $this->description = $opts['description'];
         }
@@ -63,5 +98,15 @@ class EnvironmentOption extends BaseCommand
         $cliController->setEnvironment($this->environmentKey, $arguments);
 
         return 0;
+    }
+
+    public function getAlias()
+    {
+        return $this->aliases[0];
+    }
+
+    public function getKey()
+    {
+        return $this->environmentKey;
     }
 }
