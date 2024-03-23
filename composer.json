@@ -1,5 +1,6 @@
 {
   "name": "alaxji/climax",
+  "version": "0.0.9-alpha",
   "description": "Description of project climax.",
   "authors": [
     {
@@ -17,7 +18,7 @@
   },
   "autoload": {
     "psr-4": {
-      "CliMax\\": "src/AlaxJI/CliMax/"
+      "CliMax\\": "src/CliMax/"
     }
   },
   "autoload-dev": {

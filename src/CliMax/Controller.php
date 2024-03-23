@@ -14,29 +14,32 @@ class Controller
 {
     protected static $instances;
 
+    /**
+     * Возврат вместо выхода
+     */
     const OPT_RETURN_INSTEAD_OF_EXIT = 'returnInsteadOfExit';
     const OPT_SLIENT = 'silent';
     const ERR_USAGE = -1;
 
-    protected $commandMap = array();
-    protected $usageCommands = array();
-    protected $required = array();
+    protected $commandMap = [];
+    protected $usageCommands = [];
+    protected $required = [];
     protected $defaultCommand = null;
     protected $defaultCommandAlwaysRuns = false;
-    protected $environment = array();
+    protected $environment = [];
     protected $description = '';
     /**
      * @var string The character linking a command flag to its argument. Default null (ie whitespace).
      */
     protected $argLinker = null;
 
-    protected function __construct($opts = array())
+    protected function __construct($opts = [])
     {
         $this->environment = $_ENV;
-        $this->options = array_merge(array(
+        $this->options = array_merge([
             self::OPT_RETURN_INSTEAD_OF_EXIT => false,
             self::OPT_SLIENT => false,
-            ), $opts);
+            ], $opts);
     }
 
     protected function __clone()
@@ -49,7 +52,7 @@ class Controller
      * @param array $opts
      * @return \CliMax\Controller
      */
-    public static function create($opts = array())
+    public static function create($opts = [])
     {
         $class = get_called_class();
 
@@ -59,7 +62,7 @@ class Controller
         return self::$instances[$class];
     }
 
-    public function mergeEnvironment($env, $opts = array())
+    public function mergeEnvironment($env, $opts = [])
     {
         if (!is_array($env)) {
             throw new Exception("Array required.");
@@ -106,14 +109,14 @@ class Controller
         return array_key_exists($key, $this->environment);
     }
 
-    public function addCommand($CliMaxCommand, $aliases = array())
+    public function addCommand($CliMaxCommand, $aliases = [])
     {
         if (!($CliMaxCommand instanceof \CliMax\Command\ICommand)) {
             throw new Exception('\CliMax\Command\ICommand required.');
         }
 
         if (!is_array($aliases)) {
-            $aliases = array($aliases);
+            $aliases = [$aliases];
         }
 
         if (count($aliases) === 0) {
@@ -126,7 +129,7 @@ class Controller
             }
             $this->commandMap[$alias] = $CliMaxCommand;
         }
-        $this->usageCommands[] = array('aliases' => $aliases, 'command' => $CliMaxCommand);
+        $this->usageCommands[] = ['aliases' => $aliases, 'command' => $CliMaxCommand];
 
         return $this;
     }
@@ -153,7 +156,7 @@ class Controller
         return $this;
     }
 
-    public function addEnvironmentFlagSetsValue($key, $flagSetsValue, $aliases = null, $opts = array())
+    public function addEnvironmentFlagSetsValue($key, $flagSetsValue, $aliases = null, $opts = [])
     {
         if (is_null($aliases)) {
             $aliases = ['--' . $key];
@@ -177,7 +180,7 @@ class Controller
         return $this;
     }
 
-    public function setDefaultCommand($CliMaxCommand, $opts = array())
+    public function setDefaultCommand($CliMaxCommand, $opts = [])
     {
         if ($this->defaultCommand) {
             throw new Exception('A default command has already been registered.');
@@ -189,47 +192,56 @@ class Controller
         return $this;
     }
 
-    public function run($argv, $argc, $opts = array())
+    /**
+     *
+     * @param array $argv
+     * @param int $argc
+     * @param array $opts
+     * @throws ArugumentException
+     * @throws Exception
+     */
+    public function run(array $argv, int $argc, array $opts = [])
     {
         // Shift script name from arguments
         array_shift($argv);
 
         $result = 0;
-        $commands = array();
+        $commands = [];
         $previousCommand = null;
 
         // convert argv stack into processable list
         $cmd = null;
         $cmdToken = null;
-        $args = array();
-        $defaultCommandArguments = array();
+        $args = [];
+        $defaultCommandArguments = [];
         while (true) {
             $token = array_shift($argv);
             //print "processing '{$token}'\n";
             if (is_null($token)) {    // reached end
                 if ($cmd) {   // push last command
-                    $commands[] = array('command' => $cmd, 'arguments' => $args, 'token' => $cmdToken);
+                    $commands[] = ['command' => $cmd, 'arguments' => $args, 'token' => $cmdToken];
                     $hash = spl_object_hash($cmd);
                     if (isset($this->required[$hash])) {
                         $this->required[$hash]['isAvaible'] = true;
                     }
                     $cmd = null;
-                    $args = array();
+                    $args = [];
                 }
                 if ($this->defaultCommand && (count($commands) === 0 || $this->defaultCommandAlwaysRuns)) {
                     //print "adding default command\n";
                     if (count($commands) >= 1) {
                         $args = $defaultCommandArguments;
                     }
-                    $commands[] = array('command' => $this->defaultCommand, 'arguments' => $args, 'token' => '<default>');
+                    $commands[] = ['command' => $this->defaultCommand, 'arguments' => $args, 'token' => '<default>'];
                 }
                 break;
             }
 
             $nextCmd = $this->commandForToken($token);
             if ($nextCmd) {
+                $nextCmd->setToken($token);
                 if ($cmd) {
-                    $commands[] = array('command' => $cmd, 'arguments' => $args, 'token' => $cmdToken);
+                    $commands[] = ['command' => $cmd, 'arguments' => $args, 'token' => $cmdToken];
                     $hash = spl_object_hash($cmd);
                     if (isset($this->required[$hash])) {
                         $this->required[$hash]['isAvaible'] = true;
@@ -239,17 +251,18 @@ class Controller
                 }
                 $cmd = $nextCmd;
                 $cmdToken = $token;
-                $args = array();
+                $args = [];
             } else {
                 $args[] = $token;
             }
         }
 
         if (count($commands) === 0) {
-            return $this->usage();
+            $this->usage();
         }
 
         // run commands
+        $exitCode = 0;
         $currentCommand = null;
         try {
             foreach ($this->required as $hash => $requireItem) {
@@ -260,11 +273,11 @@ class Controller
             foreach ($commands as $key => $command) {
                 $currentCommand = $command;
                 //print "Calling " . get_class($command['command']) . "::run(" . join(', ', $command['arguments']) . ")";
-                $cmdCallback = array($command['command'], 'run');
+                $cmdCallback = [$command['command'], 'run'];
                 if (!is_callable($cmdCallback)) {
                     throw new Exception("Not callable: " . var_export($cmdCallback, true));
                 }
-                $result = call_user_func_array($cmdCallback, array($command['arguments'], $this));
+                $result = call_user_func_array($cmdCallback, [$command['arguments'], $this]);
                 if (is_null($result)) {
                     throw new Exception("Command " . get_class($command['command']) . " returned null.");
                 }
@@ -274,16 +287,16 @@ class Controller
             }
         } catch (ArugumentException $e) {
             $this->options[self::OPT_SLIENT] || fwrite(STDERR, "Error processing " . ($currentCommand['token'] ?? '') . ": {$e->getMessage()}\n");
-            $result = -2;
+            $exitCode = 2;
         } catch (Exception $e) {
             $this->options[self::OPT_SLIENT] || fwrite(STDERR, get_class($e) . ": {$e->getMessage()}\n{$e->getTraceAsString()}\n");
-            $result = -1;
+            $exitCode = 1;
         }
 
-        if ($this->options['returnInsteadOfExit']) {
+        if ($this->options[self::OPT_RETURN_INSTEAD_OF_EXIT]) {
             return $result;
         }
-        exit($result);
+        exit($exitCode);
     }
 
     public function usage()
@@ -295,10 +308,10 @@ class Controller
         foreach ($this->usageCommands as $usageInfo) {
             print $usageInfo['command']->getUsage($usageInfo['aliases'], $this->argLinker) . "\n";
         }
-        if ($this->options['returnInsteadOfExit']) {
+        if ($this->options[self::OPT_RETURN_INSTEAD_OF_EXIT]) {
             return self::ERR_USAGE;
         }
-        exit(self::ERR_USAGE);
+        exit(0);
     }
 
     // returns the CLImaxCommand or null if not a command switch

@@ -17,17 +17,26 @@ use CliMax\Command\ICommand;
  */
 abstract class BaseCommand implements ICommand
 {
-    public function getAllowsMultipleUse()
+    protected $token = '';
+
+    public function setToken(string $token): ICommand
+    {
+        $this->token = $token;
+
+        return $this;
+    }
+
+    public function getAllowsMultipleUse(): bool
     {
         return false;
     }
 
-    public function getArgumentType()
+public function getArgumentType(): string
     {
         return ICommand::ARG_NONE;
     }
 
-    public function getUsage($aliases, $argLinker)
+    public function getUsage(array $aliases, ?string $argLinker): string
     {
         // calculate arg linker string
         switch ($this->getArgumentType()) {
@@ -54,8 +63,8 @@ abstract class BaseCommand implements ICommand
         return $cmd;
     }
 
-    public function getDescription($aliases, $argLinker)
+    public function getDescription(array $aliases, ?string $argLinker): string
     {
-        return isset($this->description) ? $this->description : null;
+        return isset($this->description) ? $this->description : '';
     }
 }

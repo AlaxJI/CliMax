@@ -14,22 +14,22 @@ use CliMaxTest\Environment;
  */
 class Console extends Controller
 {
-    protected function __construct($opts = array())
+    protected function __construct($opts = [])
     {
         parent::__construct($opts);
         $this
             ->addEnvironmentFlagWithExactlyOneArgument(
                 Environment::FILE,
-                array('-f', '--file'),
-                array('description' => 'decaription of file option',)
+                ['-f', '--file'],
+                ['description' => 'decaription of file option',]
             )
             ->addEnvironmentFlagSetsValue(
                 Environment::VERBOSE,
                 false,
-                array('-v', '--verbose'),
-                array('description' => 'decaription of verbose option',)
+                ['-v', '--verbose'],
+                ['description' => 'decaription of verbose option',]
             )
-            ->addCommand(new Init(), array('init'))
+            ->addCommand(new Init(), ['init'])
             ->addCommand(new Config(), 'config');
     }
 }

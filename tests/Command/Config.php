@@ -17,7 +17,7 @@ class Config extends BaseCommand
         ;
     }
 
-    public function run($arguments, \CliMax\Controller $cliController)
+    public function run(array $arguments, \CliMax\Controller $cliController): int
     {
         $appendText = '';
         if ($cliController->hasEnvironment(Environment::VERBOSE)) {
@@ -25,10 +25,10 @@ class Config extends BaseCommand
         }
         echo 'run Config command' . $appendText . PHP_EOL;
 
-        return -2;
+        return self::EXIT_WITH_CONTINUE;
     }
 
-    public function getDescription($aliases, $argLinker)
+    public function getDescription(array $aliases, ?string $argLinker): string
     {
         return 'description of Config command';
     }

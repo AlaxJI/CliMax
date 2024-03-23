@@ -66,7 +66,7 @@ class EnvironmentOption extends BaseCommand
         }
     }
 
-    public function run($arguments, Controller $cliController)
+    public function run(array $arguments, Controller $cliController): int
     {
         // argument checks
         if ($this->requiresArgument && count($arguments) === 0) {
@@ -80,9 +80,6 @@ class EnvironmentOption extends BaseCommand
             $arguments = array($this->noArgumentValue);
         }
 
-        if (!is_array($arguments)) {
-            throw new Exception("Arguments should be an array but wasn't. Internal fail.");
-        }
         if ($this->allowedValues) {
             $badArgs = array_diff($arguments, $this->allowedValues);
             if (count($badArgs) > 0) {
@@ -90,22 +87,19 @@ class EnvironmentOption extends BaseCommand
             }
         }
 
-        // flatten argument to a single value as a convenience for working with the environment data later
-        if (count($arguments) === 1) {
-            $arguments = $arguments[0];
-        }
+        $option = new Option($this->environmentKey, $this->aliases, $arguments, $this->token);
 
-        $cliController->setEnvironment($this->environmentKey, $arguments);
+        $cliController->setEnvironment($this->environmentKey, $option);
 
         return 0;
     }
 
-    public function getAlias()
+    public function getAlias(): ?string
     {
-        return $this->aliases[0];
+        return $this->aliases[0] ?? null;
     }
 
-    public function getKey()
+    public function getKey(): ?string
     {
         return $this->environmentKey;
     }
