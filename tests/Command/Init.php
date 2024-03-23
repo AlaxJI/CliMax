@@ -17,7 +17,8 @@ class Init extends BaseCommand
         print 'run Init command ' . PHP_EOL
             . "\n    with enveronment [" . var_export($cliController->getEnvironment(), true) . ']' . PHP_EOL
             . "\t    and arguments [" . implode(', ', $arguments) . ']' . PHP_EOL;
-        return -1;
+
+        return self::RETURN_STOP_WORK;
     }
 
     public function getDescription(array $aliases, ?string $argLinker): string

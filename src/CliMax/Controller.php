@@ -281,7 +281,7 @@ class Controller
                 if (is_null($result)) {
                     throw new Exception("Command " . get_class($command['command']) . " returned null.");
                 }
-                if ($result !== 0) {
+                if ($result !== Command\ICommand::RETURN_CONTINUE_WORK) {
                     break;
                 }
             }

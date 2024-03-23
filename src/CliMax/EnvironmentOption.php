@@ -87,11 +87,9 @@ class EnvironmentOption extends BaseCommand
             }
         }
 
-        $option = new Option($this->environmentKey, $this->aliases, $arguments, $this->token);
+        $cliController->setEnvironment($this->environmentKey, new Option($this->environmentKey, $this->aliases, $arguments, $this->token));
 
-        $cliController->setEnvironment($this->environmentKey, $option);
-
-        return 0;
+        return self::RETURN_CONTINUE_WORK;
     }
 
     public function getAlias(): ?string

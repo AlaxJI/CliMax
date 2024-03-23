@@ -14,8 +14,8 @@ interface ICommand
     public const ARG_NONE = 'none';
     public const ARG_OPTIONAL = 'optional';
     public const ARG_REQUIRED = 'required';
-    public const EXIT_WITH_CONTINUE = 0;
-    public const EXIT_WITH_EXIT = -2;
+    public const RETURN_CONTINUE_WORK = 0;
+    public const RETURN_STOP_WORK = -2;
 
     public function setToken(string $token): ICommand;
 

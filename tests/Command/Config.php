@@ -25,7 +25,7 @@ class Config extends BaseCommand
         }
         echo 'run Config command' . $appendText . PHP_EOL;
 
-        return self::EXIT_WITH_CONTINUE;
+        return self::RETURN_CONTINUE_WORK;
     }
 
     public function getDescription(array $aliases, ?string $argLinker): string
